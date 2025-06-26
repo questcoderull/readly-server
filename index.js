@@ -24,6 +24,18 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
+    // collections
+    const blogsCollection = client.db("readly").collection("blogs");
+
+    //blogs api
+    app.get("/blogs", async (req, res) => {
+      const cursor = blogsCollection.find();
+      const result = await cursor.toArray();
+
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
