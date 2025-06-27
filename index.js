@@ -45,6 +45,17 @@ async function run() {
       res.send(result);
     });
 
+    // featured blog
+    app.get("/featured-blogs", async (req, res) => {
+      const recentPosts = await blogsCollection
+        .find()
+        .sort({ createdAt: -1 })
+        .limit(6)
+        .toArray();
+
+      res.send(recentPosts);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
