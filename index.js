@@ -31,9 +31,17 @@ async function run() {
 
     //blogs api
     app.get("/blogs", async (req, res) => {
-      const cursor = blogsCollection.find();
+      const cursor = blogsCollection.find().sort({ _id: -1 });
+      // const cursor = blogsCollection.find();
       const result = await cursor.toArray();
 
+      res.send(result);
+    });
+
+    // blog post api
+    app.post("/blogs", async (req, res) => {
+      const blog = req.body;
+      const result = await blogsCollection.insertOne(blog);
       res.send(result);
     });
 
