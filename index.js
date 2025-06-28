@@ -28,6 +28,7 @@ async function run() {
     // collections
     const blogsCollection = client.db("readly").collection("blogs");
     const commentsCollection = client.db("readly").collection("comments");
+    const wishesCollection = client.db("readly").collection("wishes");
 
     //blogs api
     app.get("/blogs", async (req, res) => {
@@ -55,14 +56,30 @@ async function run() {
     });
 
     // featured blog
+    // app.get("/featured-blogs", async (req, res) => {
+    //   const recentPosts = await blogsCollection
+    //     .find()
+    //     .sort({ createdAt: -1 })
+    //     .limit(6)
+    //     .toArray();
+
+    //   res.send(recentPosts);
+    // });
+
     app.get("/featured-blogs", async (req, res) => {
       const recentPosts = await blogsCollection
         .find()
-        .sort({ createdAt: -1 })
+        .sort({ _id: -1 })
         .limit(6)
         .toArray();
 
       res.send(recentPosts);
+    });
+
+    // wishlist releted api
+    app.get("/wishlist", async (req, res) => {
+      const result = await wishesCollection.find().toArray();
+      res.send(result);
     });
 
     // comments releted api.
