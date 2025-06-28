@@ -111,6 +111,13 @@ async function run() {
       res.send(result);
     });
 
+    app.delete("/wishlist/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await wishesCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // comments releted api.
     app.post("/comments", async (req, res) => {
       const userComment = req.body;
