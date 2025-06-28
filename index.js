@@ -78,7 +78,36 @@ async function run() {
 
     // wishlist releted api
     app.get("/wishlist", async (req, res) => {
-      const result = await wishesCollection.find().toArray();
+      const email = req.query.email;
+      const query = { email: email };
+      const result = await wishesCollection
+        .find(query)
+        .sort({ _id: -1 })
+        .toArray();
+      res.send(result);
+    });
+
+    // app.post("/wishlist", async (req, res) => {
+    //   const addedId = wishesCollection.find({ _id: blogId });
+    //   const wishes = req.body;
+    //   const result = await wishesCollection.insertOne(wishes);
+    //   res.send(result);
+    // });
+
+    app.post("/wishlist", async (req, res) => {
+      const wishes = req.body;
+      const { blogId, email } = wishes;
+
+      const existingWish = await wishesCollection.findOne({
+        blogId: blogId,
+        email: email,
+      });
+
+      if (existingWish) {
+        return res.status(409).send({ message: "Already in wishlist" });
+      }
+
+      const result = await wishesCollection.insertOne(wishes);
       res.send(result);
     });
 
