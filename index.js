@@ -27,6 +27,7 @@ async function run() {
 
     // collections
     const blogsCollection = client.db("readly").collection("blogs");
+    const commentsCollection = client.db("readly").collection("comments");
 
     //blogs api
     app.get("/blogs", async (req, res) => {
@@ -54,6 +55,14 @@ async function run() {
         .toArray();
 
       res.send(recentPosts);
+    });
+
+    // comments releted api.
+    app.post("/comments", async (req, res) => {
+      const userComment = req.body;
+
+      const result = await commentsCollection.insertOne(userComment);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
