@@ -46,6 +46,21 @@ async function run() {
       res.send(result);
     });
 
+    // blog update api
+
+    app.put("/blogs/:id", async (req, res) => {
+      const id = req.params.id;
+      const filteredId = { _id: new ObjectId(id) };
+      const updatedBlog = req.body;
+
+      const updatedDoc = {
+        $set: updatedBlog,
+      };
+
+      const result = await blogsCollection.updateOne(filteredId, updatedDoc);
+      res.send(result);
+    });
+
     // specific blog api
     app.get("/blogs/:id", async (req, res) => {
       const id = req.params.id;
