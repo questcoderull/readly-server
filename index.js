@@ -31,17 +31,44 @@ async function run() {
     const wishesCollection = client.db("readly").collection("wishes");
 
     //blogs api
-    app.get("/blogs", async (req, res) => {
-      const cursor = blogsCollection.find().sort({ _id: -1 });
-      // const cursor = blogsCollection.find();
-      const result = await cursor.toArray();
+    // app.get("/blogs", async (req, res) => {
+    //   const search = req.query.search;
 
+    //   const query = {};
+
+    //   if (search) {
+    //     query.title = { $regex: search, $options: "i" };
+    //   }
+
+    //   const cursor = blogsCollection.find(query).sort({ _id: -1 });
+    //   // const cursor = blogsCollection.find();
+    //   const result = await cursor.toArray();
+
+    //   res.send(result);
+    // });
+
+    app.get("/blogs", async (req, res) => {
+      const search = req.query.search || "";
+      const category = req.query.category || "";
+
+      let query = {};
+
+      if (search) {
+        query.title = { $regex: search, $options: "i" };
+      }
+
+      if (category && category !== "all") {
+        query.category = category;
+      }
+
+      const result = await blogsCollection.find(query).toArray();
       res.send(result);
     });
 
     // blog post api
     app.post("/blogs", async (req, res) => {
       const blog = req.body;
+
       const result = await blogsCollection.insertOne(blog);
       res.send(result);
     });
@@ -146,7 +173,7 @@ async function run() {
       res.send(result);
     });
 
-    // 1. Send all comments from backend (not optimized but easy) testing
+    // 1. Send all comments from backend
     app.get("/all-comments", async (req, res) => {
       const comments = await commentsCollection.find().toArray();
       res.send(comments);
