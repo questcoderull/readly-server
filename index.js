@@ -146,6 +146,12 @@ async function run() {
       res.send(result);
     });
 
+    // 1. Send all comments from backend (not optimized but easy) testing
+    app.get("/all-comments", async (req, res) => {
+      const comments = await commentsCollection.find().toArray();
+      res.send(comments);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
