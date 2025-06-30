@@ -61,7 +61,10 @@ async function run() {
         query.category = category;
       }
 
-      const result = await blogsCollection.find(query).toArray();
+      const result = await blogsCollection
+        .find(query)
+        .sort({ _id: -1 })
+        .toArray();
       res.send(result);
     });
 
