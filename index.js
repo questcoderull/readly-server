@@ -3,6 +3,9 @@ const app = express();
 const cors = require("cors");
 const port = process.env.PORT || 3000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+// firebase admin SDK rquires
+const admin = require("firebase-admin");
+const serviceAccount = require("./firebase-admin-service-key.json");
 require("dotenv").config();
 
 // middlewares
@@ -19,6 +22,41 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
+// firebase admin SDK
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+//setting a middleware.
+const verifyFirebaseToken = async (req, res, next) => {
+  const authHeader = req.headers?.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).send({ message: "Unauthorized access" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = await admin.auth().verifyIdToken(token);
+    console.log("decoded token", decoded);
+
+    req.decoded = decoded;
+
+    next();
+  } catch (error) {
+    return res.status(401).send({ message: "Unauthorized access" });
+  }
+};
+
+const verifyTokenEmail = (req, res, next) => {
+  if (req.query.email !== req.decoded.email) {
+    return res.status(403).message({ message: "forbidden access" });
+  }
+
+  next();
+};
 
 async function run() {
   try {
@@ -122,15 +160,26 @@ async function run() {
     });
 
     // wishlist releted api
-    app.get("/wishlist", async (req, res) => {
-      const email = req.query.email;
-      const query = { email: email };
-      const result = await wishesCollection
-        .find(query)
-        .sort({ _id: -1 })
-        .toArray();
-      res.send(result);
-    });
+    app.get(
+      "/wishlist",
+      verifyFirebaseToken,
+      verifyTokenEmail,
+      async (req, res) => {
+        const email = req.query.email;
+
+        // if (email !== req.decoded.email) {
+        //   return res.status(403).message({ message: "forbidden access" });
+        // }
+
+        const query = { email: email };
+
+        const result = await wishesCollection
+          .find(query)
+          .sort({ _id: -1 })
+          .toArray();
+        res.send(result);
+      }
+    );
 
     // app.post("/wishlist", async (req, res) => {
     //   const addedId = wishesCollection.find({ _id: blogId });
