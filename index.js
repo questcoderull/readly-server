@@ -88,6 +88,28 @@ async function run() {
     //   res.send(result);
     // });
 
+    // app.get("/blogs", async (req, res) => {
+    //   const search = req.query.search || "";
+    //   const category = req.query.category || "";
+
+    //   let query = {};
+
+    //   if (search) {
+    //     query.title = { $regex: search, $options: "i" };
+    //   }
+
+    //   if (category && category !== "all") {
+    //     query.category = category;
+    //   }
+
+    //   const result = await blogsCollection
+    //     .find(query)
+    //     .sort({ _id: -1 })
+    //     .toArray();
+    //   res.send(result);
+    // });
+
+    //with recent  five and random all.
     app.get("/blogs", async (req, res) => {
       const search = req.query.search || "";
       const category = req.query.category || "";
@@ -97,22 +119,39 @@ async function run() {
       if (search) {
         query.title = { $regex: search, $options: "i" };
       }
-
       if (category && category !== "all") {
         query.category = category;
       }
 
-      const result = await blogsCollection
-        .find(query)
-        .sort({ _id: -1 })
+      const now = new Date();
+      const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+
+      // Recent posts: last 5 min-er moddhe created
+      const recentPosts = await blogsCollection
+        .find({ ...query, createdAt: { $gte: fiveMinutesAgo } })
+        .sort({ createdAt: -1 })
         .toArray();
-      res.send(result);
+
+      // Rest posts random order
+      const recentIds = recentPosts.map((post) => post._id);
+
+      const restPosts = await blogsCollection
+        .aggregate([
+          { $match: { ...query, _id: { $nin: recentIds } } },
+          { $sample: { size: 50 } },
+        ])
+        .toArray();
+
+      // Combine recent first, then random rest
+      const allPosts = [...recentPosts, ...restPosts];
+
+      res.send(allPosts);
     });
 
     // blog post api
     app.post("/blogs", async (req, res) => {
       const blog = req.body;
-
+      blog.createdAt = new Date();
       const result = await blogsCollection.insertOne(blog);
       res.send(result);
     });
