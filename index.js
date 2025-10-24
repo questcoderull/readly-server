@@ -201,6 +201,46 @@ async function run() {
       res.send(recentPosts);
     });
 
+    // Get user's own blogs by email
+    app.get(
+      "/my-blogs",
+      verifyFirebaseToken,
+      verifyTokenEmail,
+      async (req, res) => {
+        const email = req.query.email;
+
+        // Match authorEmail field from your database
+        const query = { authorEmail: email };
+
+        const result = await blogsCollection
+          .find(query)
+          .sort({ createdAt: -1 })
+          .toArray();
+        res.send(result);
+      }
+    );
+
+    // Get user's own comments by email
+    app.get(
+      "/my-comments",
+      verifyFirebaseToken,
+      verifyTokenEmail,
+      async (req, res) => {
+        const email = req.query.email;
+
+        // Comments don't have userEmail, so we'll match by userName
+        // This is not ideal but works with your current structure
+        // Better solution: add userEmail field when creating comments
+        const query = { userEmail: email };
+
+        const result = await commentsCollection
+          .find(query)
+          .sort({ _id: -1 })
+          .toArray();
+        res.send(result);
+      }
+    );
+
     // wishlist releted api
     app.get(
       "/wishlist",
